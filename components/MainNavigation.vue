@@ -51,7 +51,7 @@
         </v-list>
       </v-navigation-drawer>
 
-      <v-main style="height: 250px"><slot></slot></v-main>
+      <v-main><slot></slot></v-main>
     </v-layout>
   </v-card>
 </template>
