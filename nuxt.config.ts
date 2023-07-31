@@ -1,5 +1,16 @@
 //@ts-nocheck
 export default defineNuxtConfig({
+  runtimeConfig: {
+    public: {
+      firebaseApiKey: '',
+      firebaseAuthDomain: '',
+      firebaseProjectId: '',
+      firebaseStorageBucket: '',
+      firebaseMessagingSenderId: '',
+      firebaseAppId: '',
+      firebaseMeasurementId: '',
+    }
+  },
   alias: {
     'class-validator': 'class-validator/cjs/index.js',
   },
