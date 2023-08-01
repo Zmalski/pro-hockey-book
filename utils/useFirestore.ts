@@ -1,4 +1,9 @@
 import { collection, addDoc, getDocs } from "firebase/firestore";
+
+interface NuxtApp {
+    $firestore: Firestore;
+  }
+  
 // TODO: Move this over to server side
 export default function () {
     const { $firestore } = useNuxtApp()

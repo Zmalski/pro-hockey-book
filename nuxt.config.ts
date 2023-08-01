@@ -9,6 +9,7 @@ export default defineNuxtConfig({
       firebaseMessagingSenderId: '',
       firebaseAppId: '',
       firebaseMeasurementId: '',
+      nhlApiRoot: '',
     }
   },
   alias: {
