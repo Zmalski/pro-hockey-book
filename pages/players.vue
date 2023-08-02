@@ -1,5 +1,5 @@
 <template>
-  <v-card class="pa-8 d-flex justify-center flex-wrap">
+  <!-- <v-card class="pa-8 d-flex justify-center flex-wrap">
     <v-responsive max-width="550">
       <v-img class="mx-auto mt-12 mb-16" max-height="140" max-width="240"
         src="https://vuetifyjs.b-cdn.net/docs/images/logos/vuetify-logo-dark-text.svg"></v-img>
@@ -52,12 +52,29 @@
         </v-row>
       </v-container>
     </v-responsive>
-  </v-card>
+  </v-card> -->
+  <div>
+    Hello players!
+    <div v-if="isLoading">Loading...</div>
+    <div v-else-if="players?.length === 0">No players found.</div>
+    <div v-else>Found {{ players?.length }} players.
+      <div v-for="player in players" :key="player.id">
+        {{ player.fullName }}
+      </div>
+    </div>
+
+    <div>The end!</div>
+    <v-btn @click="fetchPlayers">Fetch Players</v-btn>
+    <v-btn @click="triggerPopulatePlayers">Populate Players</v-btn>
+    <v-btn @click="triggerPopulateTeams">Populate Teams</v-btn>
+  </div>
 </template>
 <script>
 export default {
+  name: 'Players',
   data: () => ({
     dialog: false,
+    players: [],
     items: [
       {
         prependIcon: 'mdi-clock-outline',
@@ -103,6 +120,27 @@ export default {
       },
     ],
   }),
+  methods: {
+    async fetchPlayers() {
+      const { getPlayers } = useNHL() // auto-imported
+      this.players = await getPlayers()
+    },
+    async triggerPopulatePlayers() {
+      const { populatePlayers } = useFirestore() // auto-imported
+      await populatePlayers(this.players)
+    },
+    async triggerPopulateTeams() {
+      const { populateTeams } = useFirestore() // auto-imported
+      const { getTeams } = useNHL() // auto-imported
+      const teams  = await getTeams()
+      await populateTeams(teams)
+    },
+  },
+  computed: {
+    isLoading() {
+      return this.players.length === 0;
+    }
+  },
 }
 </script>
 <style lang="">

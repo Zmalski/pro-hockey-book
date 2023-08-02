@@ -1,5 +1,9 @@
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, setDoc } from "firebase/firestore";
 
+
+interface Firestore {
+    collection: (name: string) => any;
+  }  
 interface NuxtApp {
     $firestore: Firestore;
   }
@@ -36,11 +40,22 @@ export default function () {
         }
     }
 
+    const getPlayersFS = async (): Promise<Array<any>> => {
+        try {
+            const querySnapshot = await getDocs(collection($firestore, "players"));
+            return querySnapshot.docs.map(doc => doc.data())
+        } catch (e) {
+            console.error("Error getting documents: ", e);
+            return [];
+        }
+    }
+
     const populateTeams = async (teams: Array<any>): Promise<boolean> => {
         try {
             for (const team of teams) {
                 // unpack team and add all fields to firestore
-                const docRef = await addDoc(collection($firestore, "teams"), {
+                const data = {
+                    id: team.id,
                     name: team.name,
                     abbreviation: team.abbreviation,
                     teamName: team.teamName,
@@ -55,7 +70,10 @@ export default function () {
                     franchiseId: team.franchiseId,
                     venue: team.venue,
                     link: team.link,
-                });
+                };
+                const colRef = collection($firestore, "teams");
+                const docRef = doc(colRef, data.id.toString());
+                await setDoc(docRef, data);
                 console.log("Document written with ID: ", docRef.id);
             }
             if (teams) {
@@ -67,12 +85,54 @@ export default function () {
         }
         return false;
     }
-        
 
+    const populatePlayers = async (players: Array<any>): Promise<boolean> => {
+        try {
+            for (const player of players) {
+                // unpack player and add all fields to firestore
+                const data = {
+                    id: player.id,
+                    fullName: player.fullName,
+                    link: player.link,
+                    firstName: player.firstName,
+                    lastName: player.lastName,
+                    primaryNumber: player.primaryNumber ? player.primaryNumber : null,
+                    birthDate: player.birthDate,
+                    currentAge: player.currentAge,
+                    birthCity: player.birthCity,
+                    birthCountry: player.birthCountry,
+                    nationality: player.nationality,
+                    height: player.height,
+                    weight: player.weight,
+                    active: player.active,
+                    alternateCaptain: player.alternateCaptain,
+                    captain: player.captain,
+                    rookie: player.rookie,
+                    shootsCatches: player.shootsCatches,
+                    rosterStatus: player.rosterStatus,
+                    currentTeam: player.currentTeam,
+                    primaryPosition: player.primaryPosition,
+                };
+                const colRef = collection($firestore, "players");
+                const docRef = doc(colRef, data.id.toString());
+                await setDoc(docRef, data);
+                console.log("Document written with ID: ", docRef.id);
+            }
+            if (players) {
+                return true;
+            }
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            return false;
+        }
+        return false;
+    }
 
     return {
         addUser,
         populateTeams,
         getTeamsFS,
+        getPlayersFS,
+        populatePlayers,
     }
 }
