@@ -1,13 +1,13 @@
-import { collection, addDoc, getDocs, doc, setDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, setDoc, getDoc, DocumentSnapshot, query, where, CollectionReference, Query } from "firebase/firestore";
 
 
 interface Firestore {
     collection: (name: string) => any;
-  }  
+}
 interface NuxtApp {
     $firestore: Firestore;
-  }
-  
+}
+
 // TODO: Move this over to server side
 export default function () {
     const { $firestore } = useNuxtApp()
@@ -40,10 +40,29 @@ export default function () {
         }
     }
 
-    const getPlayersFS = async (): Promise<Array<any>> => {
+    const getPlayersFS = async (id?: number, search?: string): Promise<Object | Array<any>> => {
         try {
-            const querySnapshot = await getDocs(collection($firestore, "players"));
-            return querySnapshot.docs.map(doc => doc.data())
+            if (id) {
+                const docRef = doc($firestore, "players", id.toString());
+                const docSnap: DocumentSnapshot = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    return docSnap.data();
+                } else {
+                    console.warn("Document " + id + " not found!");
+                    return {};
+                }
+            } else {
+                const colRef = collection($firestore, "players");
+                let q: CollectionReference | Query = colRef;
+                if (search) {
+                    // Query for documents where the search term is in the name
+                    q = query(colRef,
+                        where("fullName", ">=", search),
+                        where("fullName", "<=", search + "\uf8ff"));
+                }
+                const querySnapshot = await getDocs(q);
+                return querySnapshot.docs.map(doc => doc.data())
+            }
         } catch (e) {
             console.error("Error getting documents: ", e);
             return [];
@@ -112,6 +131,7 @@ export default function () {
                     rosterStatus: player.rosterStatus,
                     currentTeam: player.currentTeam,
                     primaryPosition: player.primaryPosition,
+                    headshot: `https://cms.nhl.bamgrid.com/images/headshots/current/168x168/${player.id}.jpg`,
                 };
                 const colRef = collection($firestore, "players");
                 const docRef = doc(colRef, data.id.toString());

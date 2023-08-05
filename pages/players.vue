@@ -1,72 +1,45 @@
 <template>
-  <!-- <v-card class="pa-8 d-flex justify-center flex-wrap">
-    <v-responsive max-width="550">
-      <v-img class="mx-auto mt-12 mb-16" max-height="140" max-width="240"
-        src="https://vuetifyjs.b-cdn.net/docs/images/logos/vuetify-logo-dark-text.svg"></v-img>
-
-      <v-autocomplete :items="items" append-inner-icon="mdi-microphone" auto-select-first class="flex-full-width"
-        density="comfortable" item-props menu-icon="" placeholder="Search Google or type a URL"
-        prepend-inner-icon="mdi-magnify" rounded theme="light" variant="solo"></v-autocomplete>
-
-      <v-container class="text-center">
-        <v-row justify="center" dense>
-          <v-col v-for="(shortcut, i) in shortcuts" :key="i" cols="auto">
-            <v-card :href="shortcut.href" class="pa-4" flat rel="noopener noreferer" target="_blank" width="112">
-              <v-avatar :icon="shortcut.icon" color="white" variant="tonal" class="mb-2"></v-avatar>
-
-              <div class="text-caption text-truncate" v-text="shortcut.title"></div>
-            </v-card>
-          </v-col>
-
-          <v-col cols="auto">
-            <v-dialog v-model="dialog" max-width="500">
-              <template v-slot:activator="{ props }">
-                <v-card flat width="112" v-bind="props" class="pa-4">
-
-                  <v-avatar icon="mdi-plus" color="white" variant="tonal" class="mb-2"></v-avatar>
-
-                  <div class="text-caption text-truncate">Add shortcut</div>
-                </v-card>
-              </template>
-
-              <v-card title="Add shortcut" rounded="lg">
-                <template v-slot:text>
-                  <v-label class="text-caption">Name</v-label>
-
-                  <v-text-field density="compact" variant="solo-filled" flat></v-text-field>
-
-                  <v-label class="text-caption">URL</v-label>
-
-                  <v-text-field density="compact" variant="solo-filled" flat></v-text-field>
-                </template>
-
-                <div class="py-4 px-5 text-end">
-                  <v-btn border class="text-none me-2" color="blue" text="Cancel" variant="text"
-                    @click="dialog = false"></v-btn>
-
-                  <v-btn class="text-none" color="blue" text="Done" variant="flat" @click="dialog = false"></v-btn>
-                </div>
-              </v-card>
-            </v-dialog>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-responsive>
-  </v-card> -->
   <div>
-    Hello players!
-    <div v-if="isLoading">Loading...</div>
-    <div v-else-if="players?.length === 0">No players found.</div>
-    <div v-else>Found {{ players?.length }} players.
-      <div v-for="player in players" :key="player.id">
-        {{ player.fullName }}
-      </div>
-    </div>
+    <v-card class="pa-8 d-flex justify-center flex-wrap">
+      <v-responsive max-width="550">
+        <v-img
+          class="mx-auto mt-12 mb-16"
+          max-height="140"
+          max-width="240"
+          src="https://vuetifyjs.b-cdn.net/docs/images/logos/vuetify-logo-dark-text.svg"
+        ></v-img>
 
-    <div>The end!</div>
-    <v-btn @click="fetchPlayers">Fetch Players</v-btn>
-    <v-btn @click="triggerPopulatePlayers">Populate Players</v-btn>
-    <v-btn @click="triggerPopulateTeams">Populate Teams</v-btn>
+        <v-autocomplete
+          :items="playerItems"
+          :loading="loading"
+          v-model="selectedPlayer"
+          v-model:search="search"
+          class="flex-full-width"
+          density="comfortable"
+          hide-no-data
+          hide-details
+          return-object
+          menu-icon=""
+          placeholder="Search Players"
+          prepend-inner-icon="mdi-magnify"
+          rounded
+          theme="light"
+          variant="solo"
+        >
+
+          <template v-slot:item="{ props, item }">
+            <v-list-item
+              v-bind="props"
+              :prepend-avatar="item?.raw?.prependAvatar"
+              :value="item?.raw?.value"
+              :title="item?.raw?.title"
+              :subtitle="item?.raw?.subtitle"
+            ></v-list-item>
+          </template>
+        </v-autocomplete>
+      </v-responsive>
+    </v-card>
+    <NuxtPage />
   </div>
 </template>
 <script>
@@ -75,74 +48,58 @@ export default {
   data: () => ({
     dialog: false,
     players: [],
-    items: [
-      {
-        prependIcon: 'mdi-clock-outline',
-        title: 'recipe with chicken',
-      },
-      {
-        prependIcon: 'mdi-clock-outline',
-        title: 'best hiking trails near me',
-      },
-      {
-        prependIcon: 'mdi-clock-outline',
-        title: 'how to learn a new language',
-      },
-      {
-        prependIcon: 'mdi-clock-outline',
-        title: 'DIY home organization ideas',
-      },
-      {
-        prependIcon: 'mdi-clock-outline',
-        title: 'latest fashion trends',
-      },
-    ],
-    shortcuts: [
-      {
-        icon: 'mdi-github',
-        title: 'Master ',
-        href: 'https://github.com/vuetifyjs/vuetify',
-      },
-      {
-        icon: 'mdi-github',
-        title: 'Dev',
-        href: 'https://github.com/vuetifyjs/vuetify/tree/dev',
-      },
-      {
-        icon: 'mdi-github',
-        title: 'Stable',
-        href: 'https://github.com/vuetifyjs/vuetify/tree/v2-stable',
-      },
-      {
-        icon: 'mdi-github',
-        title: 'My Pull Requests',
-        href: 'https://github.com/vuetifyjs/vuetify/pulls/johnleider',
-      },
-    ],
+    search: null,
+    loading: false,
+    selectedPlayer: null,
   }),
   methods: {
-    async fetchPlayers() {
-      const { getPlayers } = useNHL() // auto-imported
-      this.players = await getPlayers()
+    async fetchPlayers(searchTerm) {
+      const { getPlayers } = useNHL()
+      if (searchTerm) {
+        return await getPlayers(searchTerm)
+      } else {
+        return await getPlayers()
+      }
     },
     async triggerPopulatePlayers() {
-      const { populatePlayers } = useFirestore() // auto-imported
+      const { populatePlayers } = useFirestore()
       await populatePlayers(this.players)
     },
     async triggerPopulateTeams() {
-      const { populateTeams } = useFirestore() // auto-imported
-      const { getTeams } = useNHL() // auto-imported
-      const teams  = await getTeams()
+      const { populateTeams } = useFirestore()
+      const { getTeams } = useNHL()
+      const teams = await getTeams()
       await populateTeams(teams)
+    },
+    async querySelections(v) {
+      this.loading = true;
+      this.players = await this.fetchPlayers(v);
+      this.loading = false;
     },
   },
   computed: {
-    isLoading() {
-      return this.players.length === 0;
+    playerItems() {
+      if (!this.players) return []
+      return this.players.map(player => {
+        return {
+          title: player.fullName,
+          value: player.id,
+          subtitle: `${player?.primaryPosition?.abbreviation} - ${player?.currentTeam?.name}`,
+          prependAvatar: player?.headshot,
+        }
+      })
     }
   },
+  watch: {
+    selectedPlayer(player) {
+      // Push to router if player is not null
+      if (player) {
+        this.$router.push(`/players/${player.value}`)
+      }
+    },
+    search(val) {
+      val && dthis.querySelections(val)
+    }
+  }
 }
 </script>
-<style lang="">
-    
-</style>
