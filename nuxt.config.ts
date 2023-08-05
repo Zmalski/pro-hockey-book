@@ -28,5 +28,6 @@ export default defineNuxtConfig({
       exclude: ['class-validator']
     },
   },
+  modules: ["nuxt-lodash"],
 })
 
