@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const apiRoot: string = config.public.nhlApiRoot;
 
-    const roster = await fetch(`${apiRoot}/teams/${id}/roster`)
+    const roster = await fetch(`${apiRoot}/roster/${id}/current`)
         .then((res) => res.json())
         .catch((err) => console.log(err));
     return roster

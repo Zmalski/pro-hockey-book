@@ -12,7 +12,12 @@ export default function () {
         teams = await getTeamsFS();
         if (teams.length < 1) {
             const { data } = await useFetch('/api/nhl/teams');
-            teams = JSON.parse(JSON.stringify(data?.value?.teams));
+            if (data) {
+                teams = data?._value?.standings.map((team: { teamAbbrev: { default: string; }; teamName: { default: string; }; }) => ({
+                    id: team.teamAbbrev.default,
+                    name: team.teamName.default,
+                }));
+            }
         }
         return teams;
     }

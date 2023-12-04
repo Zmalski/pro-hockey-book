@@ -26,7 +26,6 @@
           theme="light"
           variant="solo"
         >
-
           <template v-slot:item="{ props, item }">
             <v-list-item
               v-bind="props"
@@ -44,7 +43,7 @@
 </template>
 <script>
 export default {
-  name: 'Players',
+  name: "Players",
   data: () => ({
     dialog: false,
     players: [],
@@ -54,22 +53,10 @@ export default {
   }),
   methods: {
     async fetchPlayers(searchTerm) {
-      const { getPlayers } = useNHL()
+      const { getPlayers } = useNHL();
       if (searchTerm) {
-        return await getPlayers(searchTerm)
-      } else {
-        return await getPlayers()
+        return await getPlayers(searchTerm);
       }
-    },
-    async triggerPopulatePlayers() {
-      const { populatePlayers } = useFirestore()
-      await populatePlayers(this.players)
-    },
-    async triggerPopulateTeams() {
-      const { populateTeams } = useFirestore()
-      const { getTeams } = useNHL()
-      const teams = await getTeams()
-      await populateTeams(teams)
     },
     async querySelections(v) {
       this.loading = true;
@@ -79,27 +66,27 @@ export default {
   },
   computed: {
     playerItems() {
-      if (!this.players) return []
-      return this.players.map(player => {
+      if (!this.players) return [];
+      return this.players.map((player) => {
         return {
           title: player.fullName,
           value: player.id,
           subtitle: `${player?.primaryPosition?.abbreviation} - ${player?.currentTeam?.name}`,
           prependAvatar: player?.headshot,
-        }
-      })
-    }
+        };
+      });
+    },
   },
   watch: {
     selectedPlayer(player) {
       // Push to router if player is not null
       if (player) {
-        this.$router.push(`/players/${player.value}`)
+        this.$router.push(`/players/${player.value}`);
       }
     },
     search(val) {
-      val && dthis.querySelections(val)
-    }
-  }
-}
+      val && this.querySelections(val);
+    },
+  },
+};
 </script>
