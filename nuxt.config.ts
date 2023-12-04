@@ -28,6 +28,6 @@ export default defineNuxtConfig({
       exclude: ['class-validator']
     },
   },
-  modules: ["nuxt-lodash"],
+  modules: ["nuxt-lodash", '@vueuse/nuxt',],
 })
 
